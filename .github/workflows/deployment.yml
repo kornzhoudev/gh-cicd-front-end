@@ -32,9 +32,12 @@ jobs:
           name: out-files
           path: out
 
-  deploy:
+  deploy-uat:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Get code
         uses: actions/checkout@v3
@@ -43,3 +46,10 @@ jobs:
         with:
           name: out-files
           path: out
+
+      - name: Deploy to S3
+        uses: reggionick/s3-deploy@v3
+        with:
+            folder: out
+            bucket: ${{ secrets.S3_UAT_BUCKET }}
+            bucket-region: ap-southeast-2

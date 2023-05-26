@@ -14,21 +14,7 @@ permissions:
   id-token: write
   contents: read
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get code
-        uses: actions/checkout@v3
-      - name: Load & cache dependencies
-        id: cache-dependencies
-        uses: ./.github/actions/cached-dependencies
-      - name: Output information
-        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
-      - name: Lint code
-        run: npm run lint
-
   build:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -46,8 +32,34 @@ jobs:
           name: out-files
           path: out
 
+  # test:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Get code
+  #       uses: actions/checkout@v3
+  #     - name: Load & cache dependencies
+  #       id: cache-dependencies
+  #       uses: ./.github/actions/cached-dependencies
+  #     - name: Run Unit test
+  #       run: npm run test
+    
+
+  lint:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        id: cache-dependencies
+        uses: ./.github/actions/cached-dependencies
+      - name: Lint code
+        run: npm run lint
+
+
   deploy-uat:
-    needs: build
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Get code

@@ -1,12 +1,15 @@
 name: Async-gpt-frontend
-on: 
-  pull_request:
-    types:
-      - opened
-    branches:
-      - main
-    paths:
-      - '.github/workflows/*'
+on:
+  push:
+  branches:
+    - main
+  # pull_request:
+  #   types:
+  #     - opened
+  #   branches:
+  #     - main
+  #   paths:
+  #     - '.github/workflows/*'
 
 jobs:
   build:

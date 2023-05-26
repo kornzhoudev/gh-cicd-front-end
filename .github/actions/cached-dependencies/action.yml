@@ -12,14 +12,14 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Cache dependencies
+    - name: Cache Dependencies
       if: inputs.caching == 'true'
       id: cache
       uses: actions/cache@v3
       with:
         path: node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    - name: Install dependencies
+    - name: Install Dependencies
       id: install
       if: steps.cache.outputs.cache-hit != 'true' || inputs.caching != 'true'
       run: |

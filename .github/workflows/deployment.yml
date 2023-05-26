@@ -19,11 +19,21 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Load & cache dependencies
-        id: cache-dependencies
-        uses: ./.github/actions/cached-dependencies
+      # - name: Load & cache dependencies
+      #   id: cache-dependencies
+      #   uses: ./.github/actions/cached-dependencies
+      #   with:
+      #     caching: 'false' 
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
         with:
-          caching: 'false' 
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+
       - name: Build website
         run: npm run build
       - name: Build export
@@ -33,6 +43,30 @@ jobs:
         with:
           name: out-files
           path: out
+  # test:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      # - name: Load & cache dependencies
+      #   id: cache-dependencies
+      #   uses: ./.github/actions/cached-dependencies
+      #   with:
+      #     caching: 'false' 
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} 
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Output information
+        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
+      - name: Lint code
+        run: npm run lint
 
   deploy-uat:
     needs: build
@@ -55,24 +89,24 @@ jobs:
         run: |
           aws s3 sync out ${{ secrets.S3_UAT_BUCKET }}
 
-  # deploy-prod:
-  #   needs: deploy-uat
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Get code
-  #       uses: actions/checkout@v3
-  #     - name: Get build artifacts
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: out-files
-  #         path: out
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         role-to-assume: arn:aws:iam::255697205252:role/gh-action-role
-  #         aws-region: ap-southeast-2
-  #     - name: Deploy to PROD S3
-  #       run: |
-  #         aws s3 sync out ${{ secrets.S3_PROD_BUCKET }}
+  deploy-prod:
+    needs: deploy-uat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: out-files
+          path: out
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::255697205252:role/gh-action-role
+          aws-region: ap-southeast-2
+      - name: Deploy to PROD S3
+        run: |
+          aws s3 sync out ${{ secrets.S3_PROD_BUCKET }}
       
 

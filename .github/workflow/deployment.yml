@@ -1,0 +1,40 @@
+name: Async-gpt-frontend
+on: 
+  pull_request:
+    types:
+      - opened
+    branches:
+      - main
+    paths:
+      - '.github/workflows/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load & cache dependencies
+        id: cache-dependencies
+        uses: ./.github/actions/cached-deps
+        with:
+          caching: 'false' 
+      - name: Build website
+        run: npm run build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: out-files
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Get build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: out-files
+          path: out

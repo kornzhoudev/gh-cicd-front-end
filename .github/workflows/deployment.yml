@@ -79,6 +79,7 @@ jobs:
         run: |
           aws s3 sync out ${{ secrets.S3_UAT_BUCKET }}
 
+
   deploy-prod:
     needs: deploy-uat
     runs-on: ubuntu-latest
